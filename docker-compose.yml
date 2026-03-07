@@ -4,8 +4,8 @@
 services:
   jaeger:
     container_name: jaeger
-    image: cr.jaegertracing.io/jaegertracing/jaeger:2.8.0
-    restart: on-failure:10
+    image: cr.jaegertracing.io/jaegertracing/jaeger:2.15.1
+    restart: unless-stopped
     ports:
       - "16686:16686"
       - "4317:4317"
@@ -26,4 +26,3 @@ services:
       - COLLECTOR_OTLP_HTTP_HOST_PORT=0.0.0.0:4318
 #    networks:
 #      - jaeger-example
-
