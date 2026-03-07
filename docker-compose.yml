@@ -4,8 +4,8 @@
 services:
   jaeger:
     container_name: jaeger
-    image: jaegertracing/all-in-one:1.66.0
-    restart: on-failure:10
+    image: cr.jaegertracing.io/jaegertracing/jaeger:2.8.0
+    restart: unless-stopped
     ports:
       - "16686:16686"
       - "4317:4317"
@@ -18,13 +18,11 @@ services:
       - "14269:14269"
     environment:
       - LOG_LEVEL=debug
-      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
-      - QUERY_BASE_PATH=/jaeger
-      - COLLECTOR_OTLP_ENABLED=true
+     #- QUERY_BASE_PATH=/jaeger
+     # - COLLECTOR_OTLP_ENABLED=true
 #      - COLLECTOR_ZIPKIN_HOST_PORT=9411
 #      https://github.com/jaegertracing/jaeger/issues/5737
       - COLLECTOR_OTLP_GRPC_HOST_PORT=0.0.0.0:4317
       - COLLECTOR_OTLP_HTTP_HOST_PORT=0.0.0.0:4318
 #    networks:
 #      - jaeger-example
-
