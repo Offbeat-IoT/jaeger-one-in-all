@@ -1,4 +1,4 @@
-@Library('shared-jenkins-pipelines@main') _
+@Library('shared-jenkins-pipelines@feature/jenkinsfile-migration-hooks') _
 
 // Deploy the single-node Jaeger stack on observability1 with the shared stack
 // pipeline. observability1 runs plain `docker compose`, not a Swarm.
