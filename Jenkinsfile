@@ -3,6 +3,8 @@
 // Deploy the single-node Jaeger stack on observability1 with the shared stack
 // pipeline. observability1 runs plain `docker compose`, not a Swarm.
 stackRepoCiPipeline(
+    stackMembershipVersion: 'feature/compose-host-stacks',
+    applicationVersionsRef: 'feature/compose-host-stacks',
     buildNode: 'observability',
     deployMode: 'compose',
     sourceRepo: 'Offbeat-IoT/jaeger-one-in-all',
