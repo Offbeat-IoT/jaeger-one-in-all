@@ -1,10 +1,10 @@
-@Library('shared-jenkins-pipelines@feature/jenkinsfile-migration-hooks') _
+@Library('shared-jenkins-pipelines@main') _
 
 // Deploy the single-node Jaeger stack on observability1 with the shared stack
 // pipeline. observability1 runs plain `docker compose`, not a Swarm.
 stackRepoCiPipeline(
-    stackMembershipVersion: 'feature/compose-host-stacks',
-    applicationVersionsRef: 'feature/compose-host-stacks',
+    stackMembershipVersion: 'main',
+    applicationVersionsRef: 'main',
     buildNode: 'observability',
     deployMode: 'compose',
     sourceRepo: 'Offbeat-IoT/jaeger-one-in-all',
