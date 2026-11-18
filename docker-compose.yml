@@ -56,6 +56,19 @@ configs:
             receivers: [otlp, jaeger, zipkin]
             processors: [batch]
             exporters: [jaeger_storage_exporter]
+        # Prometheus scrapes observability1:8888 for job="jaeger"; without this
+        # reader the custom config omits the metrics endpoint and JaegerDown
+        # fires even though the UI and collectors are healthy.
+        telemetry:
+          resource:
+            service.name: jaeger
+          metrics:
+            readers:
+              - pull:
+                  exporter:
+                    prometheus:
+                      host: 0.0.0.0
+                      port: 8888
 
       extensions:
         jaeger_query:
