@@ -1,11 +1,26 @@
 # To run a specific version of Jaeger, use environment variable, e.g.:
 #     JAEGER_VERSION=1.52 docker compose up
+#
+# Jaeger runs with an explicit v2 config: the image's embedded default keeps
+# traces in memory with no cap, so on observability1 the process grew from
+# 1.4 GB to 1.8 GB in an hour and pushed the 8 GB host into swap. That kernel
+# does not enforce cgroup memory limits, so `mem_limit` cannot contain it - the
+# bound has to live in Jaeger's own config (`max_traces`).
+#
+# The config is inlined as a compose `config` because the stack pipeline renders
+# this file into its own working directory, where a relative bind mount would
+# resolve to an empty directory.
 
 services:
   jaeger:
     container_name: jaeger
     image: cr.jaegertracing.io/jaegertracing/jaeger:2.15.1
     restart: unless-stopped
+    command:
+      - --config=/etc/jaeger/config.yml
+    configs:
+      - source: jaeger_config
+        target: /etc/jaeger/config.yml
     ports:
       - "16686:16686"
       - "4317:4317"
@@ -15,6 +30,7 @@ services:
       - "6832:6832/udp"
       - "5778:5778"
       - "14268:14268"
+      - "9411:9411"
       # Prometheus metrics (Jaeger v2 / OTel). :14269 is no longer served by v2.
       - "8888:8888"
     environment:
@@ -27,3 +43,55 @@ services:
       - COLLECTOR_OTLP_HTTP_HOST_PORT=0.0.0.0:4318
 #    networks:
 #      - jaeger-example
+
+configs:
+  jaeger_config:
+    content: |
+      # Jaeger v2 all-in-one config. Keeps the receivers the compose file
+      # publishes but bounds the in-memory trace store.
+      service:
+        extensions: [jaeger_storage, jaeger_query]
+        pipelines:
+          traces:
+            receivers: [otlp, jaeger, zipkin]
+            processors: [batch]
+            exporters: [jaeger_storage_exporter]
+
+      extensions:
+        jaeger_query:
+          storage:
+            traces: memory
+        jaeger_storage:
+          backends:
+            memory:
+              memory:
+                # ~20k traces is a few minutes of traffic for this fleet and a
+                # few hundred MB, instead of an unbounded 2 GB+.
+                max_traces: 20000
+
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:4317
+            http:
+              endpoint: 0.0.0.0:4318
+        jaeger:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:14250
+            thrift_binary:
+              endpoint: 0.0.0.0:6832
+            thrift_compact:
+              endpoint: 0.0.0.0:6831
+            thrift_http:
+              endpoint: 0.0.0.0:14268
+        zipkin:
+          endpoint: 0.0.0.0:9411
+
+      processors:
+        batch:
+
+      exporters:
+        jaeger_storage_exporter:
+          trace_storage: memory
