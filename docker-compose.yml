@@ -6,6 +6,13 @@ services:
     container_name: jaeger
     image: cr.jaegertracing.io/jaegertracing/jaeger:2.15.1
     restart: unless-stopped
+    # The image's embedded config keeps traces in memory without a cap; this file
+    # bounds the store (see config/config.yml) because the host kernel does not
+    # enforce cgroup memory limits.
+    command:
+      - --config=/etc/jaeger/config.yml
+    volumes:
+      - ./config/config.yml:/etc/jaeger/config.yml:ro
     ports:
       - "16686:16686"
       - "4317:4317"
@@ -15,6 +22,7 @@ services:
       - "6832:6832/udp"
       - "5778:5778"
       - "14268:14268"
+      - "9411:9411"
       # Prometheus metrics (Jaeger v2 / OTel). :14269 is no longer served by v2.
       - "8888:8888"
     environment:
